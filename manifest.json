@@ -1,0 +1,23 @@
+{
+  "manifest_version": 2,
+  "name": "MyTab",
+  "version": "0.9.1",
+  "description": "MyTab Mannger",
+  "icons": {
+    "48": "images/icon48.png"
+  },
+  "web_accessible_resources": ["images/*.png", "styles/*.css", "scripts/*.js"],
+  "browser_action": {
+    "default_icon": {
+      "38": "images/icon48.png"
+    },
+    "default_title": "MyTab Mannger",
+    "default_popup": "pages/mytab.html"
+  },
+  "background": {
+    "scripts": ["scripts/background.js"],
+    "persistent": true
+  },
+  "permissions": ["tabs", "storage", "activeTab"],
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
+}

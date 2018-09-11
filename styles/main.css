@@ -1,0 +1,59 @@
+body {
+  width: 430px;
+  margin: 10px;
+  font-size: 11px;
+}
+h3 {
+  margin: 0;
+  background-color: beige;
+  padding: 5px;
+}
+
+a {
+  color: #343434;
+}
+
+a:hover {
+  color: #565656;
+}
+
+.win_panel {
+  margin: 5px 0 5px 8px;
+}
+
+.tab-item,
+.history-item {
+  margin-left: 20px;
+}
+
+.icon {
+  height: 16px;
+  width: 16px;
+  margin: 0 3px 0 3px;
+}
+.tab-item > a,
+.history-item > a {
+  float: left;
+}
+
+.active > a {
+  color: steelblue;
+}
+
+.tab-item > a.open > span,
+.history-item > a.open > span {
+  display: block;
+  width: 360px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tab-item span {
+  padding: 0 4px 0 4px;
+  cursor: pointer;
+}
+
+.clear {
+  clear: both;
+}

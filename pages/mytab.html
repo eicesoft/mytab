@@ -1,0 +1,60 @@
+<html lang="zh-CN">
+
+<head>
+	<title>MyTab session manager</title>
+	<meta charset="utf-8">
+	<script src="/scripts/vue.js" charset="utf-8"></script>
+	<link rel="stylesheet" href="/styles/bootstrap.min.css">
+	<link rel="stylesheet" href="/styles/main.css">
+</head>
+
+<body>
+	<div id="app">
+		<h3>MyTab manager 0.9.1@kelezyb</h3>
+		<h4>
+			Windows List: <input v-on:keyup.13="goto" v-model="filter" v-focus placeholder="Filter tabs" />
+		</h4>
+		<div id="winList">
+			<div v-for="(window, id, index) in windows" :key="id" class='win_panel'>
+				<div class="win-item">
+					<a href="#" @click="changeWindow(id)">Window {{ index }}:</a>
+					<div v-for="(tab, index) in window.tabs" :class="tab.active|tab_active">
+						<a class='open'>
+							<span :title="tab.title + '(' + tab.url + ')'">
+								<img @error=" img_err" class="icon" :src="tab.favIconUrl" />
+								<span @click="changeTab(tab)">{{ tab.title }}</span>
+								<a><span class='
+							 save glyphicon glyphicon-save' title='暂存'></span></a>
+								<a @click="closeTab(tab)"><span class='remove glyphicon glyphicon-remove' title='关闭'></span></a>
+							</span>
+						</a>
+					</div>
+				</div>
+				<div class=" clear"></div>
+			</div>
+		</div>
+
+		<h4>Session List: </h4>
+		<div id="sessionList"></div>
+
+		<h4>Histroy List: </h4>
+		<div id="hisList">
+			<div v-for="(history,index) in sort_historys" class="history-item">
+				<a class="open">
+					<span :title="history.title">
+						<img class="icon" :src="history.favIcon" />
+						{{ history.title }}
+					</span>
+					<a>
+						<span @click="deleteHistory(history)" class="remove glyphicon glyphicon-remove" title="删除"></span>
+					</a>
+
+				</a>
+			</div>
+			<div class="clear"></div>
+		</div>
+	</div>
+	<script src="/scripts/mytab.js" charset="utf-8"></script>
+</body>
+
+</html>
