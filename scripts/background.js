@@ -10,9 +10,36 @@ Object.prototype.length = function() {
 function setBadge(num) {
   chrome.browserAction.setBadgeBackgroundColor({ color: "#EC272F" });
   if (num > 99) {
-    num = "20+";
+    num = "99+";
   }
+
   chrome.browserAction.setBadgeText({ text: String(num) });
+}
+
+var id = chrome.contextMenus.create({
+  title: "暂存页面",
+  contexts: ["page"],
+  onclick: addSession
+});
+
+function addSession(event, tab) {
+  chrome.tabs.remove(tab.id);
+  chrome.storage.sync.get(["sessions"], function(result) {
+    let sessions = [];
+
+    if (result["sessions"] != undefined) {
+      sessions = result["sessions"];
+    }
+
+    sessions.push({
+      id: parseInt(Math.random() * 100000),
+      url: tab.url,
+      title: tab.title,
+      created: new Date().getTime(),
+      favIcon: tab.favIconUrl
+    });
+    chrome.storage.sync.set({ sessions: sessions });
+  });
 }
 
 chrome.tabs.query({}, function(ts) {
@@ -23,14 +50,13 @@ chrome.tabs.query({}, function(ts) {
   setBadge(tabs.length());
 
   chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+    console.log(tab);
     tabs[tabId] = tab;
-    //console.log(tabs);
-    console.log(tabs);
-    setBadge(tabs.length());
   });
 
   chrome.tabs.onRemoved.addListener(function(tabId, removeInfo) {
     let tab = tabs[tabId];
+    console.log(tab);
     delete tabs[tabId];
     setBadge(tabs.length());
     chrome.storage.sync.get(["history"], function(result) {
@@ -43,21 +69,22 @@ chrome.tabs.query({}, function(ts) {
       }
 
       if (tab != undefined) {
-        if (tab.url != "chrome://newtab/") {
-          if (_history.length > 5) {
-            _history.shift();
-          }
+        try {
+          if (tab.url != undefined || tab.url.indexOf("chrome://") > 0) {
+            if (_history.length > 20) {
+              _history.shift();
+            }
 
-          _history.push({
-            id: parseInt(Math.random() * 100000),
-            url: tab.url,
-            title: tab.title,
-            created: new Date().getTime(),
-            favIcon: tab.favIconUrl
-          });
-          console.log(_history);
-          chrome.storage.sync.set({ history: _history });
-        }
+            _history.push({
+              id: parseInt(Math.random() * 100000),
+              url: tab.url,
+              title: tab.title,
+              created: new Date().getTime(),
+              favIcon: tab.favIconUrl
+            });
+            chrome.storage.sync.set({ history: _history });
+          }
+        } catch (err) {}
       }
     });
   });

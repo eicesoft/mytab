@@ -14,10 +14,20 @@
     "default_title": "MyTab Mannger",
     "default_popup": "pages/mytab.html"
   },
+  "commands": {
+    "_execute_browser_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+E",
+        "mac": "Command+Shift+E"
+      },
+      "description": "Opens tab manager page"
+    }
+  },
+
   "background": {
     "scripts": ["scripts/background.js"],
     "persistent": true
   },
-  "permissions": ["tabs", "storage", "activeTab"],
+  "permissions": ["tabs", "storage", "activeTab", "contextMenus"],
   "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
 }

@@ -2,22 +2,30 @@ let app = new Vue({
   el: "#app",
   data() {
     return {
+      activeName: "tab",
       historys: [],
       winlist: {},
       winCount: 0,
+      sessions: [],
       currentWindow: null,
       filter: ""
     };
   },
   created() {
     let that = this;
-    chrome.storage.sync.get(["history"], function(result) {
+
+    chrome.storage.sync.get(["history", "sessions"], function(result) {
       if (result["history"] == undefined) {
         chrome.storage.sync.set({ history: [] });
       } else {
         that.historys = result["history"];
       }
-      console.log(that.historys);
+
+      if (result["sessions"] == undefined) {
+        chrome.storage.sync.set({ sessions: [] });
+      } else {
+        that.sessions = result["sessions"];
+      }
 
       chrome.windows.getCurrent(function(win) {
         that.currentWindow = win;
@@ -28,6 +36,7 @@ let app = new Vue({
             windows[id] = wins[i];
 
             chrome.tabs.query({ windowId: id }, function(tabs) {
+              console.log(JSON.stringify(tabs));
               let _tabs = {};
               for (let index in tabs) {
                 _tabs[tabs[index].id] = tabs[index];
@@ -45,20 +54,20 @@ let app = new Vue({
     });
   },
   filters: {
+    img_handler(url) {
+      if (url == undefined || url == "") {
+        return "/images/page.png";
+      } else {
+        return url;
+      }
+    },
     tab_active(active) {
       console.log(active);
       //   return active != undefined && active ? "tab-item active" : "tab-item";
       if (active != undefined) {
-        return active ? "tab-item active" : "tab-item";
+        return active ? "title active" : "title";
       } else {
-        return "tab-item";
-      }
-    }
-  },
-  directives: {
-    focus: {
-      inserted: function(el) {
-        el.focus();
+        return "title";
       }
     }
   },
@@ -87,9 +96,10 @@ let app = new Vue({
             }
           }
           window["tabs"] = tabs;
+          console.log(tabs);
+
           windows[i] = window;
         }
-        // console.log(this.winlist);
         return windows;
       }
     },
@@ -100,6 +110,9 @@ let app = new Vue({
     }
   },
   methods: {
+    title(tab) {
+      return tab.title + "<br/>" + tab.url;
+    },
     goto() {
       let tab = null;
       for (var i in this.windows) {
@@ -108,15 +121,20 @@ let app = new Vue({
           break;
         }
       }
-
-      console.log(tab);
       if (tab != null) {
+        //Select first tab goto
         this.changeTab(tab);
       }
     },
     changeWindow(id) {
-      console.log(id);
       chrome.windows.update(parseInt(id), { focused: true });
+    },
+    pinTab(tab) {
+      tab.pinned = !tab.pinned;
+      chrome.tabs.update(tab.id, { pinned: tab.pinned });
+    },
+    refreshTab(tab) {
+      chrome.tabs.reload(parseInt(tab.id), { bypassCache: true });
     },
     changeTab(tab) {
       if (tab.windowId == this.currentWindow.id) {
@@ -128,9 +146,12 @@ let app = new Vue({
       }
     },
     closeTab(tab) {
-      console.log(this.winlist[tab.windowId]["tabs"][tab.id]);
       delete this.winlist[tab.windowId]["tabs"][tab.id];
       chrome.tabs.remove(tab.id);
+    },
+    openHistory(history) {
+      chrome.tabs.create({ url: history["url"] });
+      this.deleteHistory(history);
     },
     deleteHistory(history) {
       let new_history = [];
@@ -142,6 +163,34 @@ let app = new Vue({
       this.historys = new_history;
       chrome.storage.sync.set({ history: this.historys });
     },
+    openSession(session) {
+      chrome.tabs.create({ url: session["url"] });
+      //   this.deleteSession(session);
+    },
+    deleteSession(session) {
+      let new_session = [];
+      for (let i in this.sessions) {
+        if (this.sessions[i]["id"] != session["id"]) {
+          new_session.push(this.sessions[i]);
+        }
+      }
+      this.sessions = new_session;
+      chrome.storage.sync.set({ sessions: this.sessions });
+    },
+    addSession(tab) {
+      delete this.winlist[tab.windowId]["tabs"][tab.id];
+      chrome.tabs.remove(tab.id);
+
+      this.sessions.push({
+        id: parseInt(Math.random() * 100000),
+        url: tab.url,
+        title: tab.title,
+        created: new Date().getTime(),
+        favIcon: tab.favIconUrl
+      });
+      chrome.storage.sync.set({ sessions: this.sessions });
+    },
+
     img_err(event) {
       event.target.src = "/images/page.png";
     }

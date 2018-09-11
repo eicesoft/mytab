@@ -3,56 +3,87 @@
 <head>
 	<title>MyTab session manager</title>
 	<meta charset="utf-8">
+
 	<script src="/scripts/vue.js" charset="utf-8"></script>
-	<link rel="stylesheet" href="/styles/bootstrap.min.css">
+	<script src="/scripts/ele.js"></script>
+
+	<link rel="stylesheet" href="/styles/index.css">
 	<link rel="stylesheet" href="/styles/main.css">
 </head>
 
 <body>
 	<div id="app">
-		<h3>MyTab manager 0.9.1@kelezyb</h3>
-		<h4>
-			Windows List: <input v-on:keyup.13="goto" v-model="filter" v-focus placeholder="Filter tabs" />
-		</h4>
-		<div id="winList">
-			<div v-for="(window, id, index) in windows" :key="id" class='win_panel'>
-				<div class="win-item">
-					<a href="#" @click="changeWindow(id)">Window {{ index }}:</a>
-					<div v-for="(tab, index) in window.tabs" :class="tab.active|tab_active">
-						<a class='open'>
-							<span :title="tab.title + '(' + tab.url + ')'">
-								<img @error=" img_err" class="icon" :src="tab.favIconUrl" />
-								<span @click="changeTab(tab)">{{ tab.title }}</span>
-								<a><span class='
-							 save glyphicon glyphicon-save' title='暂存'></span></a>
-								<a @click="closeTab(tab)"><span class='remove glyphicon glyphicon-remove' title='关闭'></span></a>
-							</span>
-						</a>
+		<h3>MyTab Manager 0.9.1@kelezyb</h3>
+		<el-tabs v-model="activeName">
+			<el-tab-pane name="tab" label="标签管理">
+				<h4>
+					<el-input size="mini" v-on:change="goto" v-model="filter" autofocus placeholder="Filter tabs" />
+				</h4>
+				<div id="winList">
+					<div v-for="(window, id, index) in windows" :key="id" class='win_panel'>
+						<div class="win-item">
+							<a @click="changeWindow(id)">Window {{ index +1 }}:</a>
+							<el-row style="padding-left:10px;" :gutter="20" v-for="(tab, index) in window.tabs">
+								<el-col :span="18">
+									<span :class="tab.active|tab_active" @click="changeTab(tab)">
+										<el-tooltip class="item" effect="dark" placement="top">
+											<div slot="content" v-html="title(tab)"></div>
+											<a>
+												<el-badge v-if="tab.pinned" is-dot class="item">
+													<img @error="img_err" class="icon" :src="tab.favIconUrl| img_handler" />
+												</el-badge>
+												<img v-else @error="img_err" class="icon" :src="tab.favIconUrl" />
+
+												{{ tab.title }}
+											</a>
+										</el-tooltip>
+									</span>
+								</el-col>
+								<el-col :span="6">
+									<a><i @click="pinTab(tab)" :style="{color: tab.pinned ? 'red' : '#303133'}" class="el-icon-pin" title="固定"></i></a>
+									<a><i @click="refreshTab(tab)" class="el-icon-refresh" title="刷新"></i></a>
+									<a><i @click="addSession(tab)" class="el-icon-download" title="暂存"></i></a>
+									<a><i @click="closeTab(tab)" class="el-icon-close" title="关闭"></i></a>
+								</el-col>
+							</el-row>
+						</div>
+						<div class=" clear"></div>
 					</div>
 				</div>
-				<div class=" clear"></div>
-			</div>
-		</div>
-
-		<h4>Session List: </h4>
-		<div id="sessionList"></div>
-
-		<h4>Histroy List: </h4>
-		<div id="hisList">
-			<div v-for="(history,index) in sort_historys" class="history-item">
-				<a class="open">
-					<span :title="history.title">
-						<img class="icon" :src="history.favIcon" />
-						{{ history.title }}
-					</span>
-					<a>
-						<span @click="deleteHistory(history)" class="remove glyphicon glyphicon-remove" title="删除"></span>
-					</a>
-
-				</a>
-			</div>
-			<div class="clear"></div>
-		</div>
+			</el-tab-pane>
+			<el-tab-pane label="暂存管理" name="session" label="暂存管理">
+				<div id="sessionList" class='win_panel'>
+					<el-row :gutter="20" v-for="(session, index) in sessions">
+						<el-col :span="20">
+							<span class="title" @click="openSession(session)" :title="session.title + ' (' + session.url + ')'">
+								<a>
+									<img @error="img_err" class="icon" :src="session.favIcon | img_handler" />
+									{{ session.title }}
+								</a>
+							</span>
+						</el-col>
+						<el-col :span="4">
+							<a><i @click="deleteSession(session)" class="el-icon-delete" title="删除"></i></a>
+						</el-col>
+					</el-row>
+				</div>
+			</el-tab-pane>
+			<el-tab-pane label="历史管理" name="history" label="历史管理">
+				<div id="hisList" class='win_panel'>
+					<el-row :gutter="20" v-for="(history,index) in sort_historys">
+						<el-col :span=" 20">
+							<span class="title" @click="openHistory(history)" :title="history.title + ' (' + history.url + ')'">
+								<img @error="img_err" class="icon" :src="history.favIcon | img_handler" />
+								{{ history.title }}
+							</span>
+						</el-col>
+						<el-col :span="4">
+							<a><i @click="deleteHistory(history)" class="el-icon-delete" title="删除"></i></a>
+						</el-col>
+					</el-row>
+				</div>
+			</el-tab-pane>
+		</el-tabs>
 	</div>
 	<script src="/scripts/mytab.js" charset="utf-8"></script>
 </body>
